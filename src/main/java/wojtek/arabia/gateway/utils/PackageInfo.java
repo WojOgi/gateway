@@ -1,0 +1,5 @@
+package wojtek.arabia.gateway.utils;
+
+public enum PackageInfo {
+    IN_PREPARATION, DISPATCHED, IN_TRANSIT_POINT_A, IN_TRANSIT_POINT_B, IN_TRANSIT_POINT_C, READY_TO_BE_COLLECTED, COLLECTED
+}
