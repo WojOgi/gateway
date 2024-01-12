@@ -46,7 +46,7 @@ public class RequestAndResponseCreator {
 
         gatewayPackageCreationRequest.setUserId(request.getUserId());
         gatewayPackageCreationRequest.setPackageType(request.getPackageType());
-        gatewayPackageCreationRequest.setInternational(request.isInternational());
+        gatewayPackageCreationRequest.setDeliveryCountry(request.getDeliveryCountry());
         return gatewayPackageCreationRequest;
     }
 

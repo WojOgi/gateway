@@ -1,5 +1,6 @@
 package wojtek.arabia.gateway.outbound;
 
+import wojtek.arabia.gateway.utils.DeliveryCountry;
 import wojtek.arabia.gateway.utils.PackageType;
 
 import java.util.UUID;
@@ -10,7 +11,15 @@ public class GatewayPackageCreationRequest {
 
     private PackageType packageType;
 
-    private boolean isInternational;
+    private DeliveryCountry deliveryCountry;
+
+    public DeliveryCountry getDeliveryCountry() {
+        return deliveryCountry;
+    }
+
+    public void setDeliveryCountry(DeliveryCountry deliveryCountry) {
+        this.deliveryCountry = deliveryCountry;
+    }
 
     public UUID getUserId() {
         return userId;
@@ -28,11 +37,5 @@ public class GatewayPackageCreationRequest {
         this.packageType = packageType;
     }
 
-    public boolean isInternational() {
-        return isInternational;
-    }
 
-    public void setInternational(boolean international) {
-        isInternational = international;
-    }
 }
