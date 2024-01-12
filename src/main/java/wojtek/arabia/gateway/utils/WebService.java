@@ -3,7 +3,6 @@ package wojtek.arabia.gateway.utils;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.context.annotation.ApplicationScope;
 import wojtek.arabia.gateway.inbound.GatewayPackageCreationResponse;
 import wojtek.arabia.gateway.inbound.GatewayPackageQueryResponse;
 import wojtek.arabia.gateway.inbound.GatewayUserRegistrationResponse;
@@ -16,7 +15,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Component
-public class WebRequestService {
+public class WebService {
 
     private static final RestTemplate restTemplate = new RestTemplate();
 

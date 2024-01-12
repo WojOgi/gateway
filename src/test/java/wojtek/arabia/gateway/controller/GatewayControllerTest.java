@@ -4,19 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -27,7 +22,7 @@ import wojtek.arabia.gateway.outbound.GatewayUserRegistrationRequest;
 import wojtek.arabia.gateway.outbound.GatewayUserVerificationRequest;
 import wojtek.arabia.gateway.outbound.GatewayUserVerificationResponse;
 import wojtek.arabia.gateway.utils.RequestAndResponseCreator;
-import wojtek.arabia.gateway.utils.WebRequestService;
+import wojtek.arabia.gateway.utils.WebService;
 
 import java.util.UUID;
 
@@ -47,7 +42,7 @@ class GatewayControllerTest {
     private RequestAndResponseCreator requestAndResponseCreator;
 
     @MockBean
-    private WebRequestService webRequestServiceMock;
+    private WebService webServiceMock;
 
     @InjectMocks
     private GatewayController gatewayController;
@@ -92,7 +87,7 @@ class GatewayControllerTest {
         //when
         GatewayUserRegistrationRequest gatewayUserRegistrationRequest =
                 createGatewayUserRegistrationRequest(request);
-        when(webRequestServiceMock.passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users"))
+        when(webServiceMock.passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users"))
                 .thenReturn(ResponseEntity.ok().build());
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/registration")
@@ -116,7 +111,7 @@ class GatewayControllerTest {
         GatewayUserRegistrationRequest gatewayUserRegistrationRequest =
                 createGatewayUserRegistrationRequest(request);
 
-        when(webRequestServiceMock
+        when(webServiceMock
                 .passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users"))
                 .thenReturn(ResponseEntity.ok().build());
 
@@ -150,7 +145,7 @@ class GatewayControllerTest {
 
         ClientVerificationResponse clientVerificationResponse = createClientVerificationResponse(gatewayUserVerificationResponseResponseEntity);
 
-        when(webRequestServiceMock
+        when(webServiceMock
                 .passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest, "http://127.0.0.1:8080/users/verification"))
                 .thenReturn(gatewayUserVerificationResponseResponseEntity);
 
