@@ -19,6 +19,12 @@ public class WebService {
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
+    public ResponseEntity<GatewayUserRegistrationResponse> getCall(GatewayUserRegistrationRequest gatewayUserRegistrationRequest) {
+        return restTemplate.exchange("http://127.0.0.1:8080/users", HttpMethod.POST,
+                new HttpEntity<>(gatewayUserRegistrationRequest, defaultHeadersWith()),
+                GatewayUserRegistrationResponse.class);
+    }
+
     public ResponseEntity<GatewayUserRegistrationResponse> passGatewayRequestToUserCatalogue(GatewayUserRegistrationRequest gatewayUserRegistrationRequest, String url) {
         return restTemplate.exchange(url, HttpMethod.POST,
                 new HttpEntity<>(gatewayUserRegistrationRequest, defaultHeadersWith()),
