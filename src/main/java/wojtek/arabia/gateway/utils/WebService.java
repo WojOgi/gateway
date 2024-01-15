@@ -52,8 +52,6 @@ public class WebService {
         return headers;
     }
 
-    public static boolean isPaidAndReadyToBeCollected(ResponseEntity<GatewayPackageQueryResponse> response) {
-        return Objects.requireNonNull(response.getBody()).isPaid() && response.getBody().getPackageInfo().equals(PackageInfo.READY_TO_BE_COLLECTED);
-    }
+
 
 }

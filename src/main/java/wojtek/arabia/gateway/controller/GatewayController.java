@@ -4,33 +4,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import wojtek.arabia.gateway.inbound.*;
 import wojtek.arabia.gateway.outbound.*;
-import wojtek.arabia.gateway.utils.RequestAndResponseCreator;
-import wojtek.arabia.gateway.utils.WebService;
+import wojtek.arabia.gateway.utils.RequestValidator;
+import wojtek.arabia.gateway.utils.Service;
 
 import java.util.Objects;
 import java.util.UUID;
 
-import static wojtek.arabia.gateway.utils.RequestValidator.*;
-import static wojtek.arabia.gateway.utils.WebService.isPaidAndReadyToBeCollected;
+import static wojtek.arabia.gateway.utils.Service.isPaidAndReadyToBeCollected;
 
 @RestController
 public class GatewayController {
-    private final WebService webService;
-    private final RequestAndResponseCreator requestAndResponseCreator;
+    private final Service service;
 
-    public GatewayController(WebService webService, RequestAndResponseCreator requestAndResponseCreator) {
-        this.webService = webService;
-        this.requestAndResponseCreator = requestAndResponseCreator;
+    private final RequestValidator requestValidator;
+
+
+    public GatewayController(Service service, RequestValidator requestValidator) {
+        this.service = service;
+        this.requestValidator = requestValidator;
     }
 
     @PostMapping(value = "/v1/users/registration")
     public ResponseEntity<Void> registerUser(@RequestBody ClientRegistrationRequest request) {
 
-        if (clientRegistrationRequestIsValid(request)) {
+        if (requestValidator.clientRegistrationRequestIsValid(request)) {
             GatewayUserRegistrationRequest gatewayUserRegistrationRequest =
-                    requestAndResponseCreator.createGatewayUserRegistrationRequest(request);
+                    service.createGatewayUserRegistrationRequest(request);
 
-            webService.passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users");
+            service.passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users");
 
             return ResponseEntity.ok().build();
         }
@@ -40,17 +41,17 @@ public class GatewayController {
     @PostMapping(value = "/v1/users/verification")
     public ResponseEntity<ClientVerificationResponse> verifyUser(@RequestBody ClientVerificationRequest request) {
 
-        if (clientVerificationRequestIsValid(request)) {
+        if (requestValidator.clientVerificationRequestIsValid(request)) {
 
             GatewayUserVerificationRequest gatewayUserVerificationRequest =
-                    requestAndResponseCreator.createGatewayUserVerificationRequest(request);
+                    service.createGatewayUserVerificationRequest(request);
 
             ResponseEntity<GatewayUserVerificationResponse> response =
 
-                    webService.passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest, "http://127.0.0.1:8080/users/verification");
+                    service.passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest, "http://127.0.0.1:8080/users/verification");
 
             ClientVerificationResponse clientVerificationResponse =
-                    requestAndResponseCreator.createClientVerificationResponse(response);
+                    service.createClientVerificationResponse(response);
 
             return ResponseEntity.ok(clientVerificationResponse);
         }
@@ -61,16 +62,16 @@ public class GatewayController {
     @PostMapping(value = "/v1/packages/create")
     public ResponseEntity<ClientPackageCreationResponse> createPackage(@RequestBody ClientPackageCreationRequest request) {
 
-        if (clientPackageCreationRequestIsValid(request)) {
+        if (requestValidator.clientPackageCreationRequestIsValid(request)) {
 
             GatewayPackageCreationRequest gatewayPackageCreationRequest =
-                    requestAndResponseCreator.createGatewayPackageCreationRequest(request);
+                    service.createGatewayPackageCreationRequest(request);
 
             ResponseEntity<GatewayPackageCreationResponse> response =
-                    webService.passGatewayPackageCreationRequestAndCaptureResponse(gatewayPackageCreationRequest, "http://127.0.0.1:8082/packages");
+                    service.passGatewayPackageCreationRequestAndCaptureResponse(gatewayPackageCreationRequest, "http://127.0.0.1:8082/packages");
 
             ClientPackageCreationResponse clientPackageCreationResponse =
-                    requestAndResponseCreator.createClientPackageCreationResponse(response);
+                    service.createClientPackageCreationResponse(response);
 
             return ResponseEntity.ok(clientPackageCreationResponse);
         }
@@ -82,10 +83,10 @@ public class GatewayController {
     public ResponseEntity<ClientPackageQueryResponse> getPackageInfoById(@PathVariable UUID id) {
 
         ResponseEntity<GatewayPackageQueryResponse> response =
-                webService.passGatewayPackageQueryRequestAndCaptureResponse(id, "http://127.0.0.1:8082/packages/");
+                service.passGatewayPackageQueryRequestAndCaptureResponse(id, "http://127.0.0.1:8082/packages/");
 
         ClientPackageQueryResponse clientPackageQueryResponse =
-                requestAndResponseCreator.createClientPackageQueryResponse(response);
+                service.createClientPackageQueryResponse(response);
 
         if (isPaidAndReadyToBeCollected(response)) {
             clientPackageQueryResponse.setOpenCode(Objects.requireNonNull(response.getBody()).getOpenCode());

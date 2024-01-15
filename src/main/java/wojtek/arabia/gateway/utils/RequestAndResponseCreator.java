@@ -63,7 +63,7 @@ public class RequestAndResponseCreator {
 
         clientPackageQueryResponse.setPackageType(Objects.requireNonNull(response.getBody()).getPackageType());
         clientPackageQueryResponse.setPackageInfo(response.getBody().getPackageInfo());
-        clientPackageQueryResponse.setInternational(response.getBody().isInternational());
+        clientPackageQueryResponse.setDeliveryCountry(response.getBody().getDeliveryCountry());
         clientPackageQueryResponse.setPaid(response.getBody().isPaid());
         return clientPackageQueryResponse;
     }

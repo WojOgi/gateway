@@ -1,5 +1,6 @@
 package wojtek.arabia.gateway.outbound;
 
+import wojtek.arabia.gateway.utils.DeliveryCountry;
 import wojtek.arabia.gateway.utils.PackageInfo;
 import wojtek.arabia.gateway.utils.PackageType;
 
@@ -7,7 +8,15 @@ public class ClientPackageQueryResponse {
 
     private PackageType packageType;
 
-    private boolean isInternational;
+    private DeliveryCountry deliveryCountry;
+
+    public DeliveryCountry getDeliveryCountry() {
+        return deliveryCountry;
+    }
+
+    public void setDeliveryCountry(DeliveryCountry deliveryCountry) {
+        this.deliveryCountry = deliveryCountry;
+    }
 
     private boolean paid;
 
@@ -29,14 +38,6 @@ public class ClientPackageQueryResponse {
 
     public void setPackageType(PackageType packageType) {
         this.packageType = packageType;
-    }
-
-    public boolean isInternational() {
-        return isInternational;
-    }
-
-    public void setInternational(boolean international) {
-        isInternational = international;
     }
 
     public boolean isPaid() {
