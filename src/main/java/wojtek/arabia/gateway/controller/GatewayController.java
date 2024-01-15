@@ -23,6 +23,27 @@ public class GatewayController {
         this.requestAndResponseCreator = requestAndResponseCreator;
     }
 
+
+    @GetMapping("/test")
+    public ResponseEntity<Void> testingTesting() {
+        GatewayUserRegistrationRequest request = requestAndResponseCreator.getRequest();
+
+        if(request == null) {
+            return ResponseEntity.unprocessableEntity().build();
+        }
+
+        ResponseEntity<GatewayUserRegistrationResponse> response = webService.getCall(request);
+
+        if(response.getStatusCode().is2xxSuccessful()) {
+            return ResponseEntity.ok().build();
+        }
+
+        return ResponseEntity.internalServerError().build();
+    }
+
+
+
+
     @PostMapping(value = "/v1/users/registration")
     public ResponseEntity<Void> registerUser(@RequestBody ClientRegistrationRequest request) {
 

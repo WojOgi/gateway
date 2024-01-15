@@ -13,6 +13,10 @@ import static wojtek.arabia.gateway.utils.RequestValidator.countryPrefixMap;
 @Component
 public class RequestAndResponseCreator {
 
+    public GatewayUserRegistrationRequest getRequest() {
+        return new GatewayUserRegistrationRequest();
+    }
+
     public GatewayUserRegistrationRequest createGatewayUserRegistrationRequest(ClientRegistrationRequest request) {
         GatewayUserRegistrationRequest gatewayUserRegistrationRequest = new GatewayUserRegistrationRequest();
 
