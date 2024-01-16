@@ -1,5 +1,7 @@
 package wojtek.arabia.gateway.outbound;
 
+import java.util.Objects;
+
 public class GatewayUserVerificationRequest {
 
     private String phoneNumber;
@@ -21,4 +23,6 @@ public class GatewayUserVerificationRequest {
     public void setOtp(String otp) {
         this.otp = otp;
     }
+
+    //TODO equals and hashcode
 }

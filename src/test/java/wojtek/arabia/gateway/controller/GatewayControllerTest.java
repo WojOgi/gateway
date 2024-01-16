@@ -5,9 +5,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,19 +28,20 @@ import wojtek.arabia.gateway.utils.WebService;
 
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static wojtek.arabia.gateway.utils.RequestValidator.clientRegistrationRequestIsValid;
 
-//@SpringBootTest
+@SpringBootTest
 @AutoConfigureMockMvc
-@WebMvcTest(GatewayController.class)
+//@WebMvcTest(GatewayController.class)
 class GatewayControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     //here I want it to use the actual one - he is not finding it for the test purpose
-    @MockBean
+//    @MockBean
     private RequestAndResponseCreator requestAndResponseCreator;
 
     @MockBean
@@ -145,8 +148,11 @@ class GatewayControllerTest {
 
         ClientVerificationResponse clientVerificationResponse = createClientVerificationResponse(gatewayUserVerificationResponseResponseEntity);
 
+        //gdy wcześniej mockowałęś tego requestAndResponseCreatora to zapomniałeś o zdefiniowaniu jego zachowania! Czyli o Mockito.when(....)
+        //Aktualnie ten requestAndResposneCreator nie jest mockiem wiec wykonywana jest jego logika w metodach
+
         when(webServiceMock
-                .passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest, "http://127.0.0.1:8080/users/verification"))
+                .passGatewayUserVerificationRequestAndCaptureResponse(Mockito.any(GatewayUserVerificationRequest.class), anyString()))
                 .thenReturn(gatewayUserVerificationResponseResponseEntity);
 
         //when
