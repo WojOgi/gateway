@@ -23,7 +23,6 @@ public class GatewayController {
         this.requestAndResponseCreator = requestAndResponseCreator;
     }
 
-
     @GetMapping("/test")
     public ResponseEntity<Void> testingTesting() {
         GatewayUserRegistrationRequest request = requestAndResponseCreator.getRequest();
@@ -40,9 +39,6 @@ public class GatewayController {
 
         return ResponseEntity.internalServerError().build();
     }
-
-
-
 
     @PostMapping(value = "/v1/users/registration")
     public ResponseEntity<Void> registerUser(@RequestBody ClientRegistrationRequest request) {
