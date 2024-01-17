@@ -4,10 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,33 +30,24 @@ import static wojtek.arabia.gateway.utils.RequestValidator.clientRegistrationReq
 
 //@SpringBootTest
 @AutoConfigureMockMvc
-@WebMvcTest(GatewayController.class)
+@SpringBootTest
 class GatewayControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    //here I want it to use the actual one - he is not finding it for the test purpose
-    @MockBean
+    @Autowired
     private RequestAndResponseCreator requestAndResponseCreator;
-
     @MockBean
     private WebService webServiceMock;
 
-    @InjectMocks
-    private GatewayController gatewayController;
-
-
     private static final ObjectMapper objectMapper = new ObjectMapper();
-
 
     @Test
     @DisplayName("When the request contains a valid phone number and country gatewayUserRegistrationRequest is created")
     void gatewayUserRegistrationRequestIsCreated() throws Exception {
         //given
-        ClientRegistrationRequest request = new ClientRegistrationRequest();
-        request.setPhoneNumber("544700589");
-        request.setCountry("Germany");
+        ClientRegistrationRequest request = createValidRegistrationRequest();
 
         //then
         Assertions.assertTrue(clientRegistrationRequestIsValid(request));
@@ -68,31 +58,27 @@ class GatewayControllerTest {
             "but country is invalid gatewayUserRegistrationRequest is NOT created")
     void gatewayUserRegistrationRequestIsNotCreated() throws Exception {
         //given
-        ClientRegistrationRequest request = new ClientRegistrationRequest();
-        request.setPhoneNumber("544700589");
-        request.setCountry("Denmark");
+        ClientRegistrationRequest request = createInvalidRegistrationRequest();
 
         //then
         Assertions.assertFalse(clientRegistrationRequestIsValid(request));
     }
 
     @Test
-    @DisplayName("Accept a correct user registration request and return status OK")
-    void correctGatewayUserRegistrationRequestPassedToUCAndOKReturned() throws Exception {
+    @DisplayName("Valid user registration request returns OK")
+    void validClientRegistrationRequestPassedToUcWthOkStatus() throws Exception {
         //given
-        ClientRegistrationRequest request = new ClientRegistrationRequest();
-        request.setPhoneNumber("544700589");
-        request.setCountry("Germany");
+        ClientRegistrationRequest validRequest = createValidRegistrationRequest();
 
         //when
         GatewayUserRegistrationRequest gatewayUserRegistrationRequest =
-                createGatewayUserRegistrationRequest(request);
+                requestAndResponseCreator.createGatewayUserRegistrationRequest(validRequest);
         when(webServiceMock.passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users"))
                 .thenReturn(ResponseEntity.ok().build());
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/registration")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(validRequest)))
                 .andReturn();
 
         //then
@@ -100,81 +86,71 @@ class GatewayControllerTest {
     }
 
     @Test
-    @DisplayName("Accept a correct user registration request and return status OK")
-    void incorrectGatewayUserRegistrationRequestPassedToUCAndOKReturned() throws Exception {
+    @DisplayName("Invalid user registration request returns Bad Request")
+    void invalidClientRegistrationRequestNotPassedToUcWithBadRequestStatus() throws Exception {
         //given
+        ClientRegistrationRequest invalidRequest = createInvalidRegistrationRequest();
+
+        //when
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/registration")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andReturn();
+
+        //then
+        Assertions.assertEquals(result.getResponse().getStatus(), HttpStatus.BAD_REQUEST.value());
+    }
+
+    @Test
+    @DisplayName("Valid user verification request returns OK with ClientVerificationResponse in body")
+    void validClientVerificationResponsePassedToUcWithOKStatusAndCorrectBody() throws Exception {
+        //given
+        ClientVerificationRequest validRequest = createValidVerificationRequest();
+        GatewayUserVerificationResponse response = new GatewayUserVerificationResponse();
+        response.setUserId(UUID.randomUUID());
+        ResponseEntity<GatewayUserVerificationResponse> responseEntity = ResponseEntity.ok(response);
+
+        //when
+        GatewayUserVerificationRequest gatewayUserVerificationRequest =
+                requestAndResponseCreator.createGatewayUserVerificationRequest(validRequest);
+        when(webServiceMock.passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest,
+                "http://127.0.0.1:8080/users/verification")).thenReturn(responseEntity);
+        ClientVerificationResponse clientVerificationResponse =
+                requestAndResponseCreator.createClientVerificationResponse(responseEntity);
+
+        MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/v1/users/verification")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validRequest)))
+                .andReturn();
+
+        //then
+        Assertions.assertEquals(result.getResponse().getStatus(), HttpStatus.OK.value());
+        Assertions.assertEquals(result.getResponse().getContentAsString().substring(11, 47), clientVerificationResponse.getUserId().toString());
+    }
+
+    private static ClientVerificationRequest createValidVerificationRequest() {
+        ClientVerificationRequest validRequest = new ClientVerificationRequest();
+        validRequest.setPhoneNumber("544700589");
+        validRequest.setCountry("Germany");
+        validRequest.setSmsCode("123456");
+        return validRequest;
+    }
+
+
+    private static ClientRegistrationRequest createInvalidRegistrationRequest() {
         ClientRegistrationRequest request = new ClientRegistrationRequest();
         request.setPhoneNumber("544700589");
         request.setCountry("Denmark");
-
-        //when
-        GatewayUserRegistrationRequest gatewayUserRegistrationRequest =
-                createGatewayUserRegistrationRequest(request);
-
-        when(webServiceMock
-                .passGatewayRequestToUserCatalogue(gatewayUserRegistrationRequest, "http://127.0.0.1:8080/users"))
-                .thenReturn(ResponseEntity.ok().build());
-
-        MvcResult result = mockMvc
-                .perform(MockMvcRequestBuilders.post("/v1/users/registration")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andReturn();
-
-        //then
-        Assertions.assertNotEquals(result.getResponse().getStatus(), HttpStatus.OK.value());
+        return request;
     }
 
-    @Test
-    @DisplayName("Correct user verification upon receipt of a correct request with correct SmsCode")
-    void correctUserVerification() throws Exception {
-        //given
-        ClientVerificationRequest request = new ClientVerificationRequest();
+    private static ClientRegistrationRequest createValidRegistrationRequest() {
+        ClientRegistrationRequest request = new ClientRegistrationRequest();
         request.setPhoneNumber("544700589");
         request.setCountry("Germany");
-        request.setSmsCode("123456");
-        UUID userId = UUID.randomUUID();
-
-        GatewayUserVerificationRequest gatewayUserVerificationRequest =
-                createGatewayUserVerificationRequest(request);
-
-        GatewayUserVerificationResponse gatewayUserVerificationResponse = new GatewayUserVerificationResponse();
-        gatewayUserVerificationResponse.setUserId(userId);
-
-        ResponseEntity<GatewayUserVerificationResponse> gatewayUserVerificationResponseResponseEntity = ResponseEntity.ofNullable(gatewayUserVerificationResponse);
-
-        ClientVerificationResponse clientVerificationResponse = createClientVerificationResponse(gatewayUserVerificationResponseResponseEntity);
-
-        when(webServiceMock
-                .passGatewayUserVerificationRequestAndCaptureResponse(gatewayUserVerificationRequest, "http://127.0.0.1:8080/users/verification"))
-                .thenReturn(gatewayUserVerificationResponseResponseEntity);
-
-        //when
-        MvcResult result = mockMvc
-                .perform(MockMvcRequestBuilders.post("/v1/users/verification")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andReturn();
-
-        //then
-        Assertions.assertEquals(result.getResponse().getStatus(), HttpStatus.OK.value());
-
-
+        return request;
     }
 
-    private ClientVerificationResponse createClientVerificationResponse(ResponseEntity<GatewayUserVerificationResponse> gatewayUserVerificationResponseResponseEntity) {
-            RequestAndResponseCreator requestAndResponseCreator = new RequestAndResponseCreator();
-            return requestAndResponseCreator.createClientVerificationResponse(gatewayUserVerificationResponseResponseEntity);
-    }
 
-    private GatewayUserRegistrationRequest createGatewayUserRegistrationRequest(ClientRegistrationRequest request) {
-        RequestAndResponseCreator requestAndResponseCreator = new RequestAndResponseCreator();
-        return requestAndResponseCreator.createGatewayUserRegistrationRequest(request);
-    }
-
-    private GatewayUserVerificationRequest createGatewayUserVerificationRequest(ClientVerificationRequest request) {
-            RequestAndResponseCreator requestAndResponseCreator1 = new RequestAndResponseCreator();
-            return requestAndResponseCreator1.createGatewayUserVerificationRequest(request);
-    }
 
 }
